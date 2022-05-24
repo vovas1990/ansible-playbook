@@ -1,0 +1,75 @@
+---
+- name: Preconfig
+  hosts: demo
+  tasks:
+    - name: установка Docker
+      block:
+        - name: добавляни universe
+          apt_repository:
+            repo: "deb http://us.archive.ubuntu.com/ubuntu/ {{ ansible_distribution_release }}  universe"
+            state: present
+
+        - name: установка дополнительных пакетов
+          apt:
+            name:
+              - apt-transport-https
+              - ca-certificates
+              - curl
+              - gnupg
+              - lsb-release
+            update-cache: yes
+            cache_valid_time: 86400
+
+        - name: установка ключа докер
+          apt_key:
+            url: https://download.docker.com/linux/ubuntu/gpg
+            state: present
+
+        - name: установка стабильного репозиторя докер
+          apt_repository:
+            repo: >
+              deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg]
+              https://download.docker.com/linux/ubuntu
+              {{ ansible_distribution_release }} stable
+            state: present
+            update-cache: yes
+            filename: docker
+
+        - name: установка docker-ce
+          apt:
+            name: docker-ce
+            update-cache: yes
+
+
+        - name: Проверка что Docker установлен и презагружен
+          service:
+            name: docker
+            state: restarted
+            enabled: yes
+      become: yes
+# НА ЭТОМ УСТАНОВКА САМОГО ДОКЕРА ЗАВЕРШЕНА
+
+# УСТАНАВЛИВАЕМ DOCKER-COMPOSE
+
+    - name: установка DOCKER-COMPOSE
+      block:
+
+        - name: установка docker-compose
+          get_url:
+            url: "https://github.com/docker/compose/releases/download/v2.5.0/docker-compose-linux-x86_64 "
+            dest: /usr/local/lib/docker/cli-plugins  # место установки
+            mode: 0755 #режим файла тоже самое что и sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+      become: yes
+
+    - name: завершение установки
+      block:
+        - name: добавление пользователя в группу docker
+          user:
+            name: "{{ ansible_user }}"
+            groups: docker
+            append: yes
+          become: true
+
+        - name: перезагрузка сервера
+          reboot:
+      become: yes
