@@ -4,7 +4,7 @@
   tasks:
     - name: установка Docker
       block:
-        - name: добавляни universe
+        - name: добавление universe
           apt_repository:
             repo: "deb http://us.archive.ubuntu.com/ubuntu/ {{ ansible_distribution_release }}  universe"
             state: present
