@@ -1,5 +1,5 @@
 ---
-- name: All config
+- name: All configs
   hosts: cluster
   roles:
-    -preconfig
+    - preconfig
